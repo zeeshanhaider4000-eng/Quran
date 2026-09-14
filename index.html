@@ -181,6 +181,21 @@ ul.plain li:last-child { border-bottom: 0; }
 .aud .st { font-size: .86em; color: var(--muted); }
 label.f input[type=checkbox] { width: 20px; height: 20px; vertical-align: middle; }
 
+/* listen */
+.np { display: flex; align-items: center; gap: 10px; font-size: .86em; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 0 8px; margin: -6px 0 12px; }
+.np button { min-height: 34px; padding: 4px 10px; margin: 0; }
+.ctl { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 6px; }
+.ctl button { width: 52px; height: 52px; padding: 0; margin: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.ctl button.big { width: 68px; height: 68px; }
+.ctl button svg { width: 26px; height: 26px; }
+.ctl button.big svg { width: 32px; height: 32px; }
+.pick { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+.pick select, .pick input { flex: 1 1 140px; }
+.tog { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 8px 0; }
+.tog label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; }
+.tog input { width: 20px; height: 20px; }
+.ltime { font-variant-numeric: tabular-nums; color: var(--muted); }
+
 /* tables */
 table { border-collapse: collapse; width: 100%; font-size: .95em; }
 td, th { text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -203,6 +218,10 @@ th { font-weight: 500; color: var(--muted); }
 <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></symbol>
 <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
 <symbol id="i-lantern" viewBox="0 0 24 24"><path d="M9.5 3h5M10.5 3v2M13.5 3v2M8 5.5h8l1.2 3.2v6.1a5.2 5.2 0 0 1-10.4 0V8.7z M9 21h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path class="flame" d="M12 9.2c1.6 1.6 2.2 2.9 2.2 4.3a2.2 2.2 0 0 1-4.4 0c0-1.4.6-2.7 2.2-4.3z"/></symbol>
+<symbol id="i-listen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13a8 8 0 0 1 16 0"/><path d="M4 13v4a2 2 0 0 0 2 2h1v-6H6a2 2 0 0 0-2 2zM20 13v4a2 2 0 0 1-2 2h-1v-6h1a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-prev" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM18 5v14L9 12z"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM6 5v14l9-7z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></symbol>
 <symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></symbol>
 <symbol id="i-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
@@ -214,6 +233,7 @@ th { font-weight: 500; color: var(--muted); }
   <div class="hstat" id="hstat"></div>
 </header>
 <div class="lvlbar" id="lvlbar"><i style="width:0"></i></div>
+<div id="np"></div>
 <nav id="nav"></nav>
 <main id="app"><p>Loading…</p></main>
 </div>
@@ -230,8 +250,8 @@ var KEY = 'quran_seekhein_v1';
 var HIFZ_ORDER = []; for (var q = 114; q >= 78; q--) HIFZ_ORDER.push(q);
 var WORD_IV = [1, 3, 7, 14, 30, 60, 120];
 var HIFZ_IV = [1, 3, 7, 14, 30, 60, 90, 180];
-var VIEWS = [['today','Today','i-today'],['read','Read','i-read'],['words','Words','i-words'],['hifz','Hifz','i-hifz'],['map','Map','i-map']];
-var ALL_VIEWS = ['today','read','quiz','words','hifz','map','settings'];
+var VIEWS = [['today','Today','i-today'],['read','Read','i-read'],['listen','Listen','i-listen'],['words','Words','i-words'],['hifz','Hifz','i-hifz']];
+var ALL_VIEWS = ['today','read','listen','quiz','words','hifz','map','settings'];
 
 // ---------- lookups
 var surahOf = new Array(N), juzOf = new Array(N);
@@ -430,7 +450,7 @@ var RECITERS = [
   ['ar.saoodshuraym', 'Saud Ash-Shuraym', 'Saood_ash-Shuraym_128kbps'],
   ['ar.mahermuaiqly', 'Maher Al Muaiqly', 'MaherAlMuaiqly128kbps']
 ];
-var AUD = { el: null, active: false, seq: [], si: 0, ti: 0, label: '' };
+var AUD = { el: null, active: false, paused: false, owner: null, seq: [], si: 0, ti: 0, label: '', onStep: null, onEnd: null };
 function pad3(n){ return ('00' + n).slice(-3); }
 function reciter(){ for (var i = 0; i < RECITERS.length; i++) if (RECITERS[i][0] === S.set.reciter) return RECITERS[i]; return RECITERS[0]; }
 function arabicSrcs(idx){ var r = reciter(), s = surah(idx), a = ayahNo(idx); return ['https://cdn.islamic.network/quran/audio/128/' + r[0] + '/' + (idx + 1) + '.mp3', 'https://cdn.islamic.network/quran/audio/64/' + r[0] + '/' + (idx + 1) + '.mp3', 'https://everyayah.com/data/' + r[2] + '/' + pad3(s[0]) + pad3(a) + '.mp3']; }
@@ -440,13 +460,15 @@ function audioEl(){
   if (AUD.el) return AUD.el;
   var el = new Audio(); el.preload = 'auto';
   el.addEventListener('ended', function(){ if (AUD.active) nextStep(); });
-  el.addEventListener('error', function(){ if (!AUD.active) return; AUD.ti++; var st = AUD.seq[AUD.si]; if (st && AUD.ti < st.srcs.length) playStep(); else { setAudioStatus('Audio not available (needs internet).'); nextStep(); } });
+  el.addEventListener('error', function(){ if (!AUD.active) return; AUD.ti++; var st = AUD.seq[AUD.si]; if (st && AUD.ti < st.srcs.length) playStep(); else if (st && st.onFail) st.onFail(); else { setAudioStatus('Audio not available (needs internet).'); nextStep(); } });
+  el.addEventListener('timeupdate', function(){ var t = document.getElementById('ltime'); if (t && AUD.owner === 'listen' && isFinite(el.duration)) t.textContent = fmtTime(el.currentTime) + ' / ' + fmtTime(el.duration); });
   el.addEventListener('waiting', function(){ if (AUD.active) setAudioStatus('Loading ' + AUD.label + '…'); });
   el.addEventListener('playing', function(){ if (AUD.active) setAudioStatus('Playing ' + AUD.label); });
   AUD.el = el; return el;
 }
+function fmtTime(s){ s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + pad(s % 60); }
 function startAudio(list, opts){
-  opts = opts || {}; stopAudio();
+  opts = opts || {}; stopAudio(); AUD.owner = 'read';
   var seq = [], rep = Math.max(1, opts.repeat || 1);
   list.forEach(function(idx){
     for (var r = 0; r < rep; r++) {
@@ -459,7 +481,8 @@ function startAudio(list, opts){
 }
 function playStep(){
   var st = AUD.seq[AUD.si]; if (!st) { stopAudio(); return; }
-  AUD.label = st.label; updateAudioButtons();
+  AUD.label = st.label; AUD.paused = false; updateAudioButtons(); if (AUD.onStep) AUD.onStep(st);
+  try { if (navigator.mediaSession) navigator.mediaSession.playbackState = 'playing'; } catch (e) {}
   if (st.kind === 'tts') {
     var v = urduVoice();
     if (!window.speechSynthesis || !v) { setAudioStatus('No Urdu voice on this device.'); nextStep(); return; }
@@ -467,20 +490,76 @@ function playStep(){
     return;
   }
   var el = audioEl(); el.src = st.srcs[AUD.ti]; setAudioStatus('Loading ' + st.label + '…');
-  try { var p = el.play(); if (p && p.catch) p.catch(function(){ if (AUD.active) setAudioStatus('Tap Listen to start.'); }); } catch (e) {}
+  try { var p = el.play(); if (p && p.catch) p.catch(function(){ if (AUD.active) setAudioStatus('Tap play to start.'); }); } catch (e) {}
+  var nx = AUD.seq[AUD.si + 1]; if (nx && nx.srcs) { try { var pre = new Audio(); pre.preload = 'auto'; pre.src = nx.srcs[0]; AUD.pre = pre; } catch (e) {} }
 }
-function nextStep(){ AUD.si++; AUD.ti = 0; if (AUD.si >= AUD.seq.length) { stopAudio(); setAudioStatus('Done.'); return; } playStep(); }
-function stopAudio(){ AUD.active = false; AUD.seq = []; try { if (AUD.el) { AUD.el.pause(); } } catch (e) {} try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} updateAudioButtons(); setAudioStatus(''); }
+function pauseAudio(){ if (!AUD.active || AUD.paused) return; AUD.paused = true; try { if (AUD.el) AUD.el.pause(); } catch (e) {} try { if (window.speechSynthesis) speechSynthesis.pause(); } catch (e) {} try { if (navigator.mediaSession) navigator.mediaSession.playbackState = 'paused'; } catch (e) {} setAudioStatus('Paused'); listenPaint(); }
+function resumeAudio(){ if (!AUD.active || !AUD.paused) return; AUD.paused = false; var st = AUD.seq[AUD.si]; if (st && st.kind === 'tts') { try { speechSynthesis.resume(); } catch (e) {} } else { try { var p = AUD.el.play(); if (p && p.catch) p.catch(function(){}); } catch (e) {} } try { if (navigator.mediaSession) navigator.mediaSession.playbackState = 'playing'; } catch (e) {} setAudioStatus('Playing ' + AUD.label); listenPaint(); }
+function nextStep(){ AUD.si++; AUD.ti = 0; if (AUD.si >= AUD.seq.length) { var end = AUD.onEnd; if (end && end()) return; stopAudio(); setAudioStatus('Done.'); return; } playStep(); }
+function stopAudio(){ var wasListen = AUD.owner === 'listen'; AUD.active = false; AUD.paused = false; AUD.owner = null; AUD.onStep = null; AUD.onEnd = null; AUD.seq = []; try { if (navigator.mediaSession) navigator.mediaSession.playbackState = 'none'; } catch (e) {} if (wasListen) listenPaint(); try { if (AUD.el) { AUD.el.pause(); } } catch (e) {} try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} updateAudioButtons(); setAudioStatus(''); }
 function setAudioStatus(t){ var el = document.getElementById('astatus'); if (el) el.textContent = t; }
 function updateAudioButtons(){ var bs = document.querySelectorAll('[data-act="listen"],[data-act="listen-list"]'); for (var i = 0; i < bs.length; i++) { bs[i].innerHTML = AUD.active ? ico('i-stop') + '<span>Stop</span>' : ico('i-play') + '<span>' + (bs[i].getAttribute('data-label') || 'Listen') + '</span>'; } }
 function listenRow(idxs, opts){ var lab = opts && opts.label ? opts.label : 'Listen'; return '<div class="aud"><button data-act="' + (idxs.length > 1 ? 'listen-list' : 'listen') + '" data-idxs="' + idxs.join(',') + '" data-urdu="' + (opts && opts.urdu ? 1 : 0) + '" data-repeat="' + (opts && opts.repeat ? opts.repeat : 1) + '" data-label="' + esc(lab) + '">' + ico('i-play') + '<span>' + esc(lab) + '</span></button><span class="st" id="astatus"></span></div>'; }
+
+
+// ---------- listen: continuous playback by surah or juz, separate from reading progress
+var listenNote = '';
+function LS(){ if (!S.listen) S.listen = { mode: 'ayah', urdu: true, cont: true, loop: false, idx: 0 }; return S.listen; }
+function surahSrcs(n){ var r = reciter(); return [128, 64, 192, 32].map(function(b){ return 'https://cdn.islamic.network/quran/audio-surah/' + b + '/' + r[0] + '/' + n + '.mp3'; }); }
+function listenStart(fromIdx){
+  var l = LS(); if (!(fromIdx >= 0 && fromIdx < N)) fromIdx = 0; l.idx = fromIdx; var s = surah(fromIdx), n = s[0];
+  stopAudio(); AUD.owner = 'listen'; listenNote = '';
+  var seq = [];
+  if (l.mode === 'surah') seq.push({ kind: 'ar', srcs: surahSrcs(n), label: 'Surah ' + s[2], idx: s[6], onFail: function(){ l.mode = 'ayah'; listenNote = 'No whole-surah file for this reciter, playing ayah by ayah instead.'; listenStart(l.idx); } });
+  else for (var k = fromIdx; k < s[6] + s[4]; k++) { seq.push({ kind: 'ar', srcs: arabicSrcs(k), label: ref(k), idx: k }); if (l.urdu) seq.push({ kind: 'ur', srcs: urduSrcs(k), label: 'Urdu ' + ref(k), idx: k }); }
+  AUD.seq = seq; AUD.si = 0; AUD.ti = 0; AUD.active = true; AUD.paused = false;
+  AUD.onStep = function(st){ l.idx = st.idx; save(); listenPaint(); mediaMeta(st); };
+  AUD.onEnd = function(){ if (l.loop) { listenStart(s[6]); return true; } if (l.cont && n < 114) { listenStart(surahByN(n + 1)[6]); return true; } l.idx = s[6]; save(); return false; };
+  save(); playStep(); listenPaint();
+}
+function listenSkip(dir){
+  var l = LS();
+  if (!(AUD.active && AUD.owner === 'listen')) { var s0 = surah(l.idx); if (l.mode === 'surah') { var nn = Math.min(114, Math.max(1, s0[0] + dir)); l.idx = surahByN(nn)[6]; } else l.idx = Math.max(0, Math.min(N - 1, l.idx + dir)); save(); listenPaint(); return; }
+  if (l.mode === 'surah') { var s = surah(l.idx), nn2 = s[0] + dir; if (nn2 < 1 || nn2 > 114) return; listenStart(surahByN(nn2)[6]); return; }
+  var cur = AUD.seq[AUD.si] ? AUD.seq[AUD.si].idx : l.idx, target = cur + dir, s2 = surah(cur);
+  if (target < s2[6]) { if (s2[0] > 1) listenStart(surahByN(s2[0] - 1)[6]); return; }
+  if (target >= s2[6] + s2[4]) { if (s2[0] < 114) listenStart(surahByN(s2[0] + 1)[6]); return; }
+  for (var i = 0; i < AUD.seq.length; i++) if (AUD.seq[i].idx === target && AUD.seq[i].kind === 'ar') { AUD.si = i; AUD.ti = 0; playStep(); return; }
+}
+function mediaMeta(st){ try { if (!('mediaSession' in navigator) || !window.MediaMetadata) return; var s = surah(st.idx), l = LS(); navigator.mediaSession.metadata = new MediaMetadata({ title: (st.kind === 'ur' ? 'Urdu, ' : '') + s[2] + (l.mode === 'surah' ? '' : ', ayah ' + ayahNo(st.idx)), artist: reciter()[1], album: 'Quran Seekhein', artwork: [{ src: 'quran-icon.png', sizes: '180x180', type: 'image/png' }] }); } catch (e) {} }
+function mediaHandlers(){ try { var ms = navigator.mediaSession; if (!ms) return; ms.setActionHandler('play', function(){ if (AUD.active) resumeAudio(); else listenStart(LS().idx); }); ms.setActionHandler('pause', function(){ pauseAudio(); }); ms.setActionHandler('nexttrack', function(){ listenSkip(1); }); ms.setActionHandler('previoustrack', function(){ listenSkip(-1); }); } catch (e) {} }
+function listenNow(){
+  var l = LS(), live = AUD.active && AUD.owner === 'listen', st = live ? AUD.seq[AUD.si] : null, idx = st ? st.idx : l.idx, s = surah(idx), h = '';
+  h += surahBand(s) + '<p class="band-sub">' + esc(s[2]) + ', ' + esc(s[3]) + ', ' + s[4] + ' ayahs. ' + (live ? (AUD.paused ? 'Paused.' : 'Playing.') : 'Ready.') + '</p>';
+  if (l.mode === 'surah') h += '<div class="page center"><p class="ar center small-ar">' + esc(s[1]) + '</p><p class="ltime" id="ltime">' + (live ? '' : 'whole surah, one file') + '</p></div>';
+  else h += '<div class="page"><p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + (l.urdu ? transBlock(idx) : '') + '</div>';
+  return h;
+}
+function listenCtl(){
+  var live = AUD.active && AUD.owner === 'listen';
+  return '<div class="ctl"><button data-act="l-prev" aria-label="Previous">' + ico('i-prev') + '</button><button class="big primary" data-act="l-play" aria-label="' + (live && !AUD.paused ? 'Pause' : 'Play') + '">' + ico(live && !AUD.paused ? 'i-pause' : 'i-play') + '</button><button data-act="l-next" aria-label="Next">' + ico('i-next') + '</button>' + (live ? '<button class="quiet" data-act="l-stop" aria-label="Stop">' + ico('i-stop') + '</button>' : '') + '</div><p class="small center" id="astatus"></p>' + (listenNote ? '<p class="small center">' + esc(listenNote) + '</p>' : '');
+}
+function listenPaint(){ var a = document.getElementById('lnow'), b = document.getElementById('lctl'); if (a) a.innerHTML = listenNow(); if (b) b.innerHTML = listenCtl(); var np = document.getElementById('np'); if (np) np.innerHTML = npStrip(); }
+function npStrip(){ if (!(AUD.active && AUD.owner === 'listen') || view === 'listen') return ''; var st = AUD.seq[AUD.si], s = st ? surah(st.idx) : null; return s ? '<div class="np"><span class="grow">' + (AUD.paused ? 'Paused: ' : 'Playing: ') + esc(s[2]) + (LS().mode === 'surah' ? '' : ', ayah ' + ayahNo(st.idx)) + '</span><button data-act="go" data-v="listen">Open</button><button class="quiet" data-act="l-stop">Stop</button></div>' : ''; }
+function vListen(){
+  var l = LS(), s = surah(l.idx), h = '';
+  h += '<h2>Listen</h2><p>Pick a surah or a juz and it plays straight through, then carries on into the next surah. Nothing here counts toward your reading progress; it only remembers where you stopped.</p>';
+  h += '<div class="pick"><select data-lset="surah" aria-label="Surah">' + D.S.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === s[0] ? ' selected' : '') + '>' + x[0] + '. ' + esc(x[2]) + '</option>'; }).join('') + '</select><select data-lset="juz" aria-label="Juz"><option value="">Juz…</option>' + D.JUZ.map(function(st, j){ return '<option value="' + (j + 1) + '">Juz ' + (j + 1) + '</option>'; }).join('') + '</select>' + (l.mode === 'ayah' ? '<input type="number" min="1" max="' + s[4] + '" value="' + ayahNo(l.idx) + '" data-lset="ayah" aria-label="From ayah" style="max-width:110px">' : '') + '</div>';
+  h += '<div class="tog"><label><input type="radio" name="lmode" data-lset="mode" value="ayah"' + (l.mode === 'ayah' ? ' checked' : '') + '> Ayah by ayah</label><label><input type="radio" name="lmode" data-lset="mode" value="surah"' + (l.mode === 'surah' ? ' checked' : '') + '> Whole surah in one file (Arabic only, no gaps)</label></div>';
+  h += '<div class="tog">' + (l.mode === 'ayah' ? '<label><input type="checkbox" data-lset="urdu"' + (l.urdu ? ' checked' : '') + '> Urdu after each ayah</label>' : '') + '<label><input type="checkbox" data-lset="cont"' + (l.cont ? ' checked' : '') + '> Continue to the next surah</label><label><input type="checkbox" data-lset="loop"' + (l.loop ? ' checked' : '') + '> Repeat this surah</label></div>';
+  h += '<p class="small">Reciter: ' + esc(reciter()[1]) + ' (change in <a href="#settings" data-act="go" data-v="settings">Settings</a>). Needs internet.</p>';
+  h += '<div id="lnow">' + listenNow() + '</div><div id="lctl">' + listenCtl() + '</div>';
+  h += '<p class="small">For the gym: press play, lock the phone, and use the lock-screen controls to skip. If the home-screen version goes quiet when the phone locks, open the same address in Safari instead; Safari keeps playing in the background.</p>';
+  return h;
+}
 
 // ---------- shared render pieces
 function applyTheme(){ var t = S.set.theme; if (t === 'auto') { try { t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day'; } catch (e) { t = 'day'; } } document.documentElement.setAttribute('data-theme', t); var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', t === 'night' ? '#0F1A18' : '#FBF8F1'); return t; }
 function renderChrome(){
   var lv = level(), st = streakNow(), t = document.documentElement.getAttribute('data-theme');
-  document.getElementById('hstat').innerHTML = '<span class="lantern ' + (st ? 'lit' : '') + '" title="Streak">' + ico('i-lantern') + st + ' day' + (st === 1 ? '' : 's') + '</span><span class="lv">Level ' + lv.lvl + '</span><button class="ib" data-act="theme" aria-label="Switch day and night look">' + ico(t === 'night' ? 'i-sun' : 'i-moon') + '</button><button class="ib" data-act="go" data-v="settings" aria-label="Settings">' + ico('i-gear') + '</button>';
+  document.getElementById('hstat').innerHTML = '<span class="lantern ' + (st ? 'lit' : '') + '" title="Streak">' + ico('i-lantern') + st + ' day' + (st === 1 ? '' : 's') + '</span><span class="lv">Level ' + lv.lvl + '</span><button class="ib" data-act="go" data-v="map" aria-label="Map and progress">' + ico('i-map') + '</button><button class="ib" data-act="theme" aria-label="Switch day and night look">' + ico(t === 'night' ? 'i-sun' : 'i-moon') + '</button><button class="ib" data-act="go" data-v="settings" aria-label="Settings">' + ico('i-gear') + '</button>';
   var bar = document.getElementById('lvlbar'); bar.innerHTML = '<i style="width:' + Math.round(100 * lv.into / lv.need) + '%"></i>' + (xpFloat > 0 ? '<span class="xpf">+' + xpFloat + ' XP</span>' : ''); xpFloat = 0;
+  document.getElementById('np').innerHTML = npStrip();
   document.getElementById('nav').innerHTML = VIEWS.map(function(v){ return '<a href="#' + v[0] + '" data-act="go" data-v="' + v[0] + '" class="' + (view === v[0] ? 'on' : '') + '">' + ico(v[2]) + '<span>' + v[1] + '</span></a>'; }).join('');
 }
 function rosNum(n){ return '<span class="num">' + ico('ros') + '<b>' + arNum(n) + '</b></span>'; }
@@ -665,15 +744,15 @@ function vSettings(){
   return h;
 }
 function render(){
-  if (AUD.active) stopAudio();
+  if (AUD.active && AUD.owner !== 'listen') stopAudio();
   document.documentElement.style.setProperty('--fs', S.set.font);
   applyTheme(); renderChrome();
-  var body = view === 'today' ? vToday() : view === 'read' ? vRead() : view === 'quiz' ? vQuiz() : view === 'words' ? vWords() : view === 'hifz' ? vHifz() : view === 'map' ? vMap() : vSettings();
+  var body = view === 'today' ? vToday() : view === 'read' ? vRead() : view === 'listen' ? vListen() : view === 'quiz' ? vQuiz() : view === 'words' ? vWords() : view === 'hifz' ? vHifz() : view === 'map' ? vMap() : vSettings();
   $app.innerHTML = noticeBlock() + body;
   try { window.scrollTo(0, 0); } catch (e) {}
 }
 function autoListen(){ if (S.set.autoplay && view === 'read' && !(readCount() >= N && S.read[ptr])) startAudio([ptr], { urdu: true }); }
-function go(v){ stopAudio(); view = v; if (v === 'read') ptr = S.cursor; if (v !== 'quiz') Q = null; if (v !== 'words') WS = null; if (v !== 'hifz') HS = null; render(); }
+function go(v){ if (AUD.active && AUD.owner !== 'listen') stopAudio(); view = v; if (v === 'read') ptr = S.cursor; if (v !== 'quiz') Q = null; if (v !== 'words') WS = null; if (v !== 'hifz') HS = null; render(); }
 
 // ---------- events
 document.addEventListener('click', function(e){
@@ -682,6 +761,10 @@ document.addEventListener('click', function(e){
   if (el.tagName === 'A' || el.tagName === 'a') e.preventDefault();
   switch (act) {
     case 'go': go(el.getAttribute('data-v')); break;
+    case 'l-play': (function(){ if (AUD.active && AUD.owner === 'listen') { if (AUD.paused) resumeAudio(); else pauseAudio(); } else listenStart(LS().idx); })(); break;
+    case 'l-prev': listenSkip(-1); break;
+    case 'l-next': listenSkip(1); break;
+    case 'l-stop': stopAudio(); render(); break;
     case 'listen': case 'listen-list': (function(){ if (AUD.active) { stopAudio(); return; } var idxs = el.getAttribute('data-idxs').split(',').map(Number); startAudio(idxs, { urdu: el.getAttribute('data-urdu') === '1', repeat: +el.getAttribute('data-repeat') || 1 }); })(); break;
     case 'theme': (function(){ var cur = document.documentElement.getAttribute('data-theme'); S.set.theme = cur === 'night' ? 'day' : 'night'; save(); render(); })(); break;
     case 'understood': markRead(+el.getAttribute('data-idx'), false); render(); autoListen(); break;
@@ -722,11 +805,21 @@ document.addEventListener('input', function(e){
   if (el.getAttribute && el.getAttribute('data-act') === 'note') { var idx = +el.getAttribute('data-idx'), val = el.value; clearTimeout(noteTimer); noteTimer = setTimeout(function(){ if (val.trim()) S.notes[idx] = val; else delete S.notes[idx]; save(); }, 400); }
 });
 document.addEventListener('change', function(e){
-  var el = e.target, k = el.getAttribute ? el.getAttribute('data-set') : null; if (!k) return;
+  var el = e.target, lk = el.getAttribute ? el.getAttribute('data-lset') : null;
+  if (lk) { var l = LS(), live = AUD.active && AUD.owner === 'listen';
+    if (lk === 'surah') l.idx = surahByN(+el.value)[6];
+    else if (lk === 'juz') { if (!el.value) return; l.idx = D.JUZ[+el.value - 1]; }
+    else if (lk === 'ayah') { var sa = surah(l.idx), a = Math.max(1, Math.min(sa[4], parseInt(el.value, 10) || 1)); l.idx = sa[6] + a - 1; }
+    else if (lk === 'mode') l.mode = el.value;
+    else l[lk] = !!el.checked;
+    save();
+    if (live && lk !== 'cont' && lk !== 'loop') listenStart(l.idx); else if (live) listenPaint(); else render();
+    return; }
+  var k = el.getAttribute ? el.getAttribute('data-set') : null; if (!k) return;
   if (k === 'jumpSurah') { if (!el.value) return; var s = surahByN(+el.value), first = s[6]; for (var i = 0; i < s[4]; i++) if (!S.read[s[6] + i]) { first = s[6] + i; break; } S.cursor = first; save(); notice('Reading now continues from ' + ref(first) + '.'); go('read'); return; }
   if (k === 'trans') S.set.trans = el.value;
   else if (k === 'theme') S.set.theme = el.value;
-  else if (k === 'reciter') S.set.reciter = el.value;
+  else if (k === 'reciter') { S.set.reciter = el.value; if (AUD.active && AUD.owner === 'listen') listenStart(LS().idx); }
   else if (k === 'urduAudio') S.set.urduAudio = el.value;
   else if (k === 'autoplay') S.set.autoplay = !!el.checked;
   else if (k === 'font') S.set.font = +el.value;
@@ -743,6 +836,7 @@ load(function(saved){
   ptr = S.cursor;
   var v = location.hash.replace('#', ''); if (ALL_VIEWS.indexOf(v) >= 0) view = v;
   plan().forEach(function(i){ prevDone[i.id] = i.done; });
+  LS(); mediaHandlers();
   render();
 });
 })();
