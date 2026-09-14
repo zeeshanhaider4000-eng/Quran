@@ -174,6 +174,13 @@ ul.plain li:last-child { border-bottom: 0; }
 .face .hint { position: absolute; bottom: 10px; font-size: .78em; color: var(--muted); }
 .hide { display: none; }
 
+/* audio */
+.aud { margin: 12px 0 4px; }
+.aud button { display: inline-flex; align-items: center; gap: 8px; }
+.aud button svg { width: 18px; height: 18px; }
+.aud .st { font-size: .86em; color: var(--muted); }
+label.f input[type=checkbox] { width: 20px; height: 20px; vertical-align: middle; }
+
 /* tables */
 table { border-collapse: collapse; width: 100%; font-size: .95em; }
 td, th { text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -196,6 +203,8 @@ th { font-weight: 500; color: var(--muted); }
 <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></symbol>
 <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></symbol>
 <symbol id="i-lantern" viewBox="0 0 24 24"><path d="M9.5 3h5M10.5 3v2M13.5 3v2M8 5.5h8l1.2 3.2v6.1a5.2 5.2 0 0 1-10.4 0V8.7z M9 21h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path class="flame" d="M12 9.2c1.6 1.6 2.2 2.9 2.2 4.3a2.2 2.2 0 0 1-4.4 0c0-1.4.6-2.7 2.2-4.3z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
 <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 </defs></svg>
@@ -252,7 +261,7 @@ function transText(idx){ return D.T[transKey()][idx]; }
 var S = null, view = 'today', ptr = 0, notices = [], Q = null, WS = null, HS = null, mapOpen = {}, showWordList = false, xpFloat = 0, prevDone = {};
 function defaults(){ return {
   v: 1, created: todayKey(),
-  set: { perDay: 5, wordsPerDay: 5, hifzPerDay: 7, trans: 'both', font: 1, theme: 'auto' },
+  set: { perDay: 5, wordsPerDay: 5, hifzPerDay: 7, trans: 'both', font: 1, theme: 'auto', reciter: 'ar.alafasy', urduAudio: 'rec', autoplay: false, hifzRepeat: 3 },
   cursor: 0, read: {}, notes: {}, rev: {}, words: {}, hifz: {}, hifzCur: null,
   xp: 0, streak: { cur: 0, best: 0, last: null }, days: {}, ach: [], log: []
 }; }
@@ -410,6 +419,62 @@ function finishHifz(){
   checkDay();
 }
 
+
+// ---------- audio (streams from public Quran audio CDNs; needs internet)
+var RECITERS = [
+  ['ar.alafasy', 'Mishary Rashid Alafasy', 'Alafasy_128kbps'],
+  ['ar.abdulbasitmurattal', 'Abdul Basit Abdus Samad (murattal)', 'Abdul_Basit_Murattal_192kbps'],
+  ['ar.husary', 'Mahmoud Khalil Al-Husary', 'Husary_128kbps'],
+  ['ar.minshawi', 'Mohamed Siddiq Al-Minshawi', 'Minshawy_Murattal_128kbps'],
+  ['ar.abdurrahmaansudais', 'Abdur-Rahman As-Sudais', 'Abdurrahmaan_As-Sudais_192kbps'],
+  ['ar.saoodshuraym', 'Saud Ash-Shuraym', 'Saood_ash-Shuraym_128kbps'],
+  ['ar.mahermuaiqly', 'Maher Al Muaiqly', 'MaherAlMuaiqly128kbps']
+];
+var AUD = { el: null, active: false, seq: [], si: 0, ti: 0, label: '' };
+function pad3(n){ return ('00' + n).slice(-3); }
+function reciter(){ for (var i = 0; i < RECITERS.length; i++) if (RECITERS[i][0] === S.set.reciter) return RECITERS[i]; return RECITERS[0]; }
+function arabicSrcs(idx){ var r = reciter(), s = surah(idx), a = ayahNo(idx); return ['https://cdn.islamic.network/quran/audio/128/' + r[0] + '/' + (idx + 1) + '.mp3', 'https://cdn.islamic.network/quran/audio/64/' + r[0] + '/' + (idx + 1) + '.mp3', 'https://everyayah.com/data/' + r[2] + '/' + pad3(s[0]) + pad3(a) + '.mp3']; }
+function urduSrcs(idx){ var s = surah(idx), a = ayahNo(idx); return ['https://cdn.islamic.network/quran/audio/64/ur.khan/' + (idx + 1) + '.mp3', 'https://cdn.islamic.network/quran/audio/128/ur.khan/' + (idx + 1) + '.mp3', 'https://everyayah.com/data/translations/urdu_shamshad_ali_khan_46kbps/' + pad3(s[0]) + pad3(a) + '.mp3']; }
+function urduVoice(){ try { var vs = window.speechSynthesis ? speechSynthesis.getVoices() : []; for (var i = 0; i < vs.length; i++) if (/^ur/i.test(vs[i].lang)) return vs[i]; } catch (e) {} return null; }
+function audioEl(){
+  if (AUD.el) return AUD.el;
+  var el = new Audio(); el.preload = 'auto';
+  el.addEventListener('ended', function(){ if (AUD.active) nextStep(); });
+  el.addEventListener('error', function(){ if (!AUD.active) return; AUD.ti++; var st = AUD.seq[AUD.si]; if (st && AUD.ti < st.srcs.length) playStep(); else { setAudioStatus('Audio not available (needs internet).'); nextStep(); } });
+  el.addEventListener('waiting', function(){ if (AUD.active) setAudioStatus('Loading ' + AUD.label + '…'); });
+  el.addEventListener('playing', function(){ if (AUD.active) setAudioStatus('Playing ' + AUD.label); });
+  AUD.el = el; return el;
+}
+function startAudio(list, opts){
+  opts = opts || {}; stopAudio();
+  var seq = [], rep = Math.max(1, opts.repeat || 1);
+  list.forEach(function(idx){
+    for (var r = 0; r < rep; r++) {
+      seq.push({ kind: 'ar', srcs: arabicSrcs(idx), label: 'Arabic, ' + ref(idx) });
+      if (opts.urdu && S.set.urduAudio === 'rec') seq.push({ kind: 'ur', srcs: urduSrcs(idx), label: 'Urdu, ' + ref(idx) });
+      else if (opts.urdu && S.set.urduAudio === 'tts') seq.push({ kind: 'tts', text: transText(idx), label: 'Urdu (device voice), ' + ref(idx) });
+    }
+  });
+  AUD.seq = seq; AUD.si = 0; AUD.ti = 0; AUD.active = true; playStep();
+}
+function playStep(){
+  var st = AUD.seq[AUD.si]; if (!st) { stopAudio(); return; }
+  AUD.label = st.label; updateAudioButtons();
+  if (st.kind === 'tts') {
+    var v = urduVoice();
+    if (!window.speechSynthesis || !v) { setAudioStatus('No Urdu voice on this device.'); nextStep(); return; }
+    try { var u = new SpeechSynthesisUtterance(st.text); u.voice = v; u.lang = v.lang; u.rate = .9; u.onend = function(){ if (AUD.active) nextStep(); }; u.onerror = function(){ if (AUD.active) nextStep(); }; setAudioStatus('Playing ' + st.label); speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { nextStep(); }
+    return;
+  }
+  var el = audioEl(); el.src = st.srcs[AUD.ti]; setAudioStatus('Loading ' + st.label + '…');
+  try { var p = el.play(); if (p && p.catch) p.catch(function(){ if (AUD.active) setAudioStatus('Tap Listen to start.'); }); } catch (e) {}
+}
+function nextStep(){ AUD.si++; AUD.ti = 0; if (AUD.si >= AUD.seq.length) { stopAudio(); setAudioStatus('Done.'); return; } playStep(); }
+function stopAudio(){ AUD.active = false; AUD.seq = []; try { if (AUD.el) { AUD.el.pause(); } } catch (e) {} try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} updateAudioButtons(); setAudioStatus(''); }
+function setAudioStatus(t){ var el = document.getElementById('astatus'); if (el) el.textContent = t; }
+function updateAudioButtons(){ var bs = document.querySelectorAll('[data-act="listen"],[data-act="listen-list"]'); for (var i = 0; i < bs.length; i++) { bs[i].innerHTML = AUD.active ? ico('i-stop') + '<span>Stop</span>' : ico('i-play') + '<span>' + (bs[i].getAttribute('data-label') || 'Listen') + '</span>'; } }
+function listenRow(idxs, opts){ var lab = opts && opts.label ? opts.label : 'Listen'; return '<div class="aud"><button data-act="' + (idxs.length > 1 ? 'listen-list' : 'listen') + '" data-idxs="' + idxs.join(',') + '" data-urdu="' + (opts && opts.urdu ? 1 : 0) + '" data-repeat="' + (opts && opts.repeat ? opts.repeat : 1) + '" data-label="' + esc(lab) + '">' + ico('i-play') + '<span>' + esc(lab) + '</span></button><span class="st" id="astatus"></span></div>'; }
+
 // ---------- shared render pieces
 function applyTheme(){ var t = S.set.theme; if (t === 'auto') { try { t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day'; } catch (e) { t = 'day'; } } document.documentElement.setAttribute('data-theme', t); var m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', t === 'night' ? '#0F1A18' : '#FBF8F1'); return t; }
 function renderChrome(){
@@ -465,7 +530,7 @@ function readCard(idx, browseOnly){
   var dots = '<div class="dots">'; for (var i = 0; i < Math.min(pd, 20); i++) dots += '<i class="' + (i < n ? 'f' : '') + '"></i>'; dots += (n > pd ? '<span class="plus">+' + (n - pd) + '</span>' : '') + '</div>';
   h += '<div class="row">' + dots + '<span class="small grow">' + (n >= pd ? 'Goal done, ' + n + ' today. Keep going or <a href="#quiz" data-act="go" data-v="quiz">take the quiz</a>.' : n + ' of ' + pd + ' today') + '</span></div>';
   h += surahBand(s) + '<p class="band-sub">' + esc(s[2]) + ', ' + esc(s[3]) + ', ' + s[5] + '. Ayah ' + ayahNo(idx) + ' of ' + s[4] + ', Juz ' + (juzOf[idx] + 1) + '.</p>';
-  h += '<div class="page">' + bismillah(idx) + '<p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + transBlock(idx);
+  h += '<div class="page">' + bismillah(idx) + '<p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + transBlock(idx) + listenRow([idx], { urdu: true });
   h += '<h3>Your note</h3><textarea class="ur" data-act="note" data-idx="' + idx + '" placeholder="اس آیت سے کیا سمجھ آیا؟">' + esc(S.notes[idx] || '') + '</textarea>';
   if (already) h += '<p class="small">Read on ' + niceDate(S.read[idx]) + '.' + (S.rev[idx] ? ' Due for revision.' : '') + '</p>';
   h += '</div>';
@@ -544,7 +609,7 @@ function vHifz(){
   }
   if (HS.mode === 'read') {
     h += surahBand(s) + '<p class="band-sub">' + esc(s[2]) + ', ' + s[4] + ' ayahs. Read it through, then start memorising.</p><div class="page">' + (s[0] !== 9 ? '<p class="ar small-ar center">' + esc(D.A[0]) + '</p>' : '');
-    h += HS.list.map(function(idx){ return '<p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + transBlock(idx); }).join('') + '</div>';
+    h += HS.list.map(function(idx){ return '<p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + transBlock(idx); }).join('') + listenRow(HS.list, { label: 'Listen to the surah' }) + '</div>';
     h += '<p><button class="primary" data-act="hifz-readdone">Read it, start memorising</button></p>';
     return h;
   }
@@ -554,7 +619,7 @@ function vHifz(){
     h += '<div class="page">' + (HS.mode === 'cue' ? '<p class="ar cue">' + esc(words.slice(0, 2).join(' ')) + ' …</p>' : '<p class="ar cue center">' + rosNum(ayahNo(idx)) + '</p>') + '<p class="small center">Recite it, then check.</p></div>';
     h += '<p><button class="primary" data-act="h-reveal">Show ayah</button></p>';
   } else {
-    h += '<div class="page"><p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + transBlock(idx) + '</div>';
+    h += '<div class="page"><p class="ar">' + esc(D.A[idx]) + rosNum(ayahNo(idx)) + '</p>' + transBlock(idx) + listenRow([idx], { label: 'Listen ' + S.set.hifzRepeat + ' times', repeat: S.set.hifzRepeat }) + '</div>';
     h += '<p><button class="primary" data-act="h-yes">I recalled it</button><button class="quiet" data-act="h-no">Not yet</button></p>';
   }
   return h;
@@ -581,6 +646,12 @@ function vSettings(){
   h += '<label class="f"><span>Ayahs per day</span><input type="number" min="1" max="50" value="' + st.perDay + '" data-set="perDay"></label>';
   h += '<label class="f"><span>Words per day</span><input type="number" min="1" max="20" value="' + st.wordsPerDay + '" data-set="wordsPerDay"></label>';
   h += '<label class="f"><span>Hifz ayahs per session</span><input type="number" min="3" max="20" value="' + st.hifzPerDay + '" data-set="hifzPerDay"></label>';
+  h += '<h2>Listening</h2>';
+  h += '<label class="f"><span>Reciter</span><select data-set="reciter">' + RECITERS.map(function(r){ return '<option value="' + r[0] + '"' + (st.reciter === r[0] ? ' selected' : '') + '>' + esc(r[1]) + '</option>'; }).join('') + '</select></label>';
+  h += '<label class="f"><span>Urdu after the Arabic</span><select data-set="urduAudio"><option value="rec"' + (st.urduAudio === 'rec' ? ' selected' : '') + '>Recording (Shamshad Ali Khan)</option><option value="tts"' + (st.urduAudio === 'tts' ? ' selected' : '') + '>Device voice' + (urduVoice() ? '' : ' (no Urdu voice found on this device)') + '</option><option value="off"' + (st.urduAudio === 'off' ? ' selected' : '') + '>Off</option></select></label>';
+  h += '<label class="f"><span>Play when an ayah opens</span><input type="checkbox" data-set="autoplay"' + (st.autoplay ? ' checked' : '') + '></label>';
+  h += '<label class="f"><span>Hifz repeats per ayah</span><input type="number" min="1" max="7" value="' + st.hifzRepeat + '" data-set="hifzRepeat"></label>';
+  h += '<p class="small">Audio streams from a public Quran audio service, so listening needs internet. Reading works offline.</p>';
   h += '<h2>Display</h2>';
   h += '<label class="f"><span>Urdu translation</span><select data-set="trans"><option value="j"' + (st.trans === 'j' ? ' selected' : '') + '>Fateh Muhammad Jalandhri</option><option value="g"' + (st.trans === 'g' ? ' selected' : '') + '>Muhammad Junagarhi</option><option value="both"' + (st.trans === 'both' ? ' selected' : '') + '>Both</option></select></label>';
   h += '<label class="f"><span>Look</span><select data-set="theme"><option value="auto"' + (st.theme === 'auto' ? ' selected' : '') + '>Follow device</option><option value="day"' + (st.theme === 'day' ? ' selected' : '') + '>Day</option><option value="night"' + (st.theme === 'night' ? ' selected' : '') + '>Night</option></select></label>';
@@ -594,13 +665,15 @@ function vSettings(){
   return h;
 }
 function render(){
+  if (AUD.active) stopAudio();
   document.documentElement.style.setProperty('--fs', S.set.font);
   applyTheme(); renderChrome();
   var body = view === 'today' ? vToday() : view === 'read' ? vRead() : view === 'quiz' ? vQuiz() : view === 'words' ? vWords() : view === 'hifz' ? vHifz() : view === 'map' ? vMap() : vSettings();
   $app.innerHTML = noticeBlock() + body;
   try { window.scrollTo(0, 0); } catch (e) {}
 }
-function go(v){ view = v; if (v === 'read') ptr = S.cursor; if (v !== 'quiz') Q = null; if (v !== 'words') WS = null; if (v !== 'hifz') HS = null; render(); }
+function autoListen(){ if (S.set.autoplay && view === 'read' && !(readCount() >= N && S.read[ptr])) startAudio([ptr], { urdu: true }); }
+function go(v){ stopAudio(); view = v; if (v === 'read') ptr = S.cursor; if (v !== 'quiz') Q = null; if (v !== 'words') WS = null; if (v !== 'hifz') HS = null; render(); }
 
 // ---------- events
 document.addEventListener('click', function(e){
@@ -609,12 +682,13 @@ document.addEventListener('click', function(e){
   if (el.tagName === 'A' || el.tagName === 'a') e.preventDefault();
   switch (act) {
     case 'go': go(el.getAttribute('data-v')); break;
+    case 'listen': case 'listen-list': (function(){ if (AUD.active) { stopAudio(); return; } var idxs = el.getAttribute('data-idxs').split(',').map(Number); startAudio(idxs, { urdu: el.getAttribute('data-urdu') === '1', repeat: +el.getAttribute('data-repeat') || 1 }); })(); break;
     case 'theme': (function(){ var cur = document.documentElement.getAttribute('data-theme'); S.set.theme = cur === 'night' ? 'day' : 'night'; save(); render(); })(); break;
-    case 'understood': markRead(+el.getAttribute('data-idx'), false); render(); break;
-    case 'revisit': markRead(+el.getAttribute('data-idx'), true); render(); break;
-    case 'prev': if (ptr > 0) ptr--; render(); break;
-    case 'nextb': if (ptr < N - 1) ptr++; render(); break;
-    case 'jumpcur': ptr = S.cursor; render(); break;
+    case 'understood': markRead(+el.getAttribute('data-idx'), false); render(); autoListen(); break;
+    case 'revisit': markRead(+el.getAttribute('data-idx'), true); render(); autoListen(); break;
+    case 'prev': if (ptr > 0) ptr--; render(); autoListen(); break;
+    case 'nextb': if (ptr < N - 1) ptr++; render(); autoListen(); break;
+    case 'jumpcur': ptr = S.cursor; render(); autoListen(); break;
     case 'jump': S.cursor = +el.getAttribute('data-idx'); save(); go('read'); break;
     case 'map-juz': (function(){ var j = el.getAttribute('data-j'); mapOpen[j] = true; view = 'map'; render(); var t = document.getElementById('juz' + j); if (t && t.scrollIntoView) { try { t.scrollIntoView({ block: 'start' }); } catch (err) {} } })(); break;
     case 'quiz-start': startQuiz(el.getAttribute('data-kind')); render(); break;
@@ -652,11 +726,15 @@ document.addEventListener('change', function(e){
   if (k === 'jumpSurah') { if (!el.value) return; var s = surahByN(+el.value), first = s[6]; for (var i = 0; i < s[4]; i++) if (!S.read[s[6] + i]) { first = s[6] + i; break; } S.cursor = first; save(); notice('Reading now continues from ' + ref(first) + '.'); go('read'); return; }
   if (k === 'trans') S.set.trans = el.value;
   else if (k === 'theme') S.set.theme = el.value;
+  else if (k === 'reciter') S.set.reciter = el.value;
+  else if (k === 'urduAudio') S.set.urduAudio = el.value;
+  else if (k === 'autoplay') S.set.autoplay = !!el.checked;
   else if (k === 'font') S.set.font = +el.value;
-  else { var v = parseInt(el.value, 10); if (isNaN(v)) return; var lim = { perDay: [1, 50], wordsPerDay: [1, 20], hifzPerDay: [3, 20] }[k]; S.set[k] = Math.max(lim[0], Math.min(lim[1], v)); }
+  else { var v = parseInt(el.value, 10); if (isNaN(v)) return; var lim = { perDay: [1, 50], wordsPerDay: [1, 20], hifzPerDay: [3, 20], hifzRepeat: [1, 7] }[k]; S.set[k] = Math.max(lim[0], Math.min(lim[1], v)); }
   checkDay(); save(); render();
 });
 window.addEventListener('hashchange', function(){ var v = location.hash.replace('#', ''); if (ALL_VIEWS.indexOf(v) >= 0 && v !== view) go(v); });
+try { if (window.speechSynthesis) speechSynthesis.addEventListener('voiceschanged', function(){ if (view === 'settings') render(); }); } catch (e) {}
 try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){ if (S && S.set.theme === 'auto') render(); }); } catch (e) {}
 
 load(function(saved){
